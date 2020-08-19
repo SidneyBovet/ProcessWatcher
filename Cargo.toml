@@ -1,0 +1,11 @@
+[package]
+name = "win-process-watcher"
+version = "0.1.0"
+authors = ["Sidney Bovet <sidney.bovet@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+sysinfo = "0.15.1"
+serde = { version = "1.0.104", features = ["derive"] }
+serde_json = "1.0.48"
+reqwest = { version = "0.10.7", features = ["blocking"] }

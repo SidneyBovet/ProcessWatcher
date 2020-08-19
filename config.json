@@ -1,0 +1,14 @@
+{
+    "process": {
+        "name": "Zoom.exe",
+        "required_arguments": [
+            "--action=preload",
+            "--runaszvideo=TRUE"
+        ]
+    },
+    "remote": {
+        "ip": "102.168.0.29",
+        "route_on": "/on",
+        "route_off": "/off"
+    }
+}
