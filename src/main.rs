@@ -33,15 +33,18 @@ fn load_config() -> Config {
 }
 
 // Main loop that watches for a given process, calling back when either found or not
-fn watch_loop<F>(config: &Config, found_callback: Arc<F>) where
+fn watch_loop<F>(config: &Config, state_change_callback: Arc<F>) where
     F: Fn(&Config, bool) {
     let mut system = sysinfo::System::new_all();
+
+    let mut currently_on: bool = false;
+    state_change_callback(config, false);
 
     loop {
         // update process information
         system.refresh_specifics(RefreshKind::new().with_processes());
 
-        let mut found = false;
+        let mut is_now_on = false;
         for process in system.get_process_by_name(&config.process.name) {
             // Look for all processes with a given name and arguments
             let mut all_args_satisfy = true;
@@ -50,12 +53,15 @@ fn watch_loop<F>(config: &Config, found_callback: Arc<F>) where
             }
             if all_args_satisfy {
                 // The process matches all requirements
-                found = true;
+                is_now_on = true;
                 break;
             }
         }
 
-        found_callback(config, found);
+        if is_now_on != currently_on {
+            currently_on = is_now_on;
+            state_change_callback(config, currently_on);
+        }
 
         thread::sleep(time::Duration::from_secs(config.sleep_time_sec));
     }
@@ -63,10 +69,8 @@ fn watch_loop<F>(config: &Config, found_callback: Arc<F>) where
 
 // Sends a HTTP GET to the given address
 fn send_get(addr: &str) -> Result<(), Error> {
-    println!("Sending [GET {}]", addr);
     let body = reqwest::blocking::get(addr)?.text()?;
-    println!("Body:\n{}", body);
-
+    println!("{}", body);
     Ok(())
 }
 
@@ -86,7 +90,6 @@ fn main() {
     let config = load_config();
 
     let switch_led = Arc::new(move |config: &Config, on: bool| {
-        println!("Switching LED");
         send_get(&get_address(config, on)).expect("Couldn't send HTTP GET");
     });
 
