@@ -21,6 +21,7 @@ struct Remote {
 struct Config {
     process: Process,
     remote: Remote,
+    sleep_time_sec: u64,
 }
 
 // Reads config from JSON config
@@ -56,7 +57,7 @@ fn watch_loop<F>(config: &Config, found_callback: Arc<F>) where
 
         found_callback(config, found);
 
-        thread::sleep(time::Duration::from_millis(5000));
+        thread::sleep(time::Duration::from_secs(config.sleep_time_sec));
     }
 }
 
