@@ -1,5 +1,5 @@
 [package]
-name = "win-process-watcher"
+name = "process-watcher"
 version = "0.1.0"
 authors = ["Sidney Bovet <sidney.bovet@gmail.com>"]
 edition = "2018"

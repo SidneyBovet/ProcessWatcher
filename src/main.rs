@@ -33,12 +33,12 @@ fn load_config() -> Config {
 }
 
 // Main loop that watches for a given process, calling back when either found or not
-fn watch_loop<F>(config: &Config, state_change_callback: Arc<F>) where
-    F: Fn(&Config, bool) {
+fn watch_loop<F>(config: &Config, state_change_callback: Arc<F>) -> Result<(), Error> where
+    F: Fn(&Config, bool) -> Result<(), Error> {
     let mut system = sysinfo::System::new_all();
 
     let mut currently_on: bool = false;
-    state_change_callback(config, false);
+    state_change_callback(config, false)?;
 
     loop {
         // update process information
@@ -60,7 +60,7 @@ fn watch_loop<F>(config: &Config, state_change_callback: Arc<F>) where
 
         if is_now_on != currently_on {
             currently_on = is_now_on;
-            state_change_callback(config, currently_on);
+            state_change_callback(config, currently_on)?;
         }
 
         thread::sleep(time::Duration::from_secs(config.sleep_time_sec));
@@ -89,9 +89,15 @@ fn get_address(config: &Config, turn_on: bool) -> String {
 fn main() {
     let config = load_config();
 
-    let switch_led = Arc::new(move |config: &Config, on: bool| {
-        send_get(&get_address(config, on)).expect("Couldn't send HTTP GET");
-    });
+    loop {
 
-    watch_loop(&config, switch_led);
+        let switch_led = Arc::new(move |config: &Config, on: bool| {
+            send_get(&get_address(config, on))
+        });
+
+        if let Err(_err) = watch_loop(&config, switch_led) {
+            println!("Something went wrong, waiting a bit before watching again.");
+            thread::sleep(time::Duration::from_secs(60));
+        }
+    }
 }
