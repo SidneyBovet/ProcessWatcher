@@ -1,3 +1,6 @@
+// Hide the console window
+#![windows_subsystem = "windows"]
+
 use std::{thread, time, fs};
 use std::sync::Arc;
 use sysinfo::{ProcessExt, RefreshKind, SystemExt};
